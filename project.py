@@ -26,16 +26,15 @@ df_train = df_train.drop(df_train.loc[df_train['Electrical'].isnull()].index)
 corrmat = df_train.corr()
 f, ax = plt.subplots(figsize=(12, 9))
 sb.heatmap(corrmat, vmax=.8, square=True)
-# plt.show()
-
-# korelacja SalePrice z k-1 innymi atrybutami
+plt.show()
+#
+# # korelacja SalePrice z k-1 innymi atrybutami
 k = 10
 cols = corrmat.nlargest(k, 'SalePrice')['SalePrice'].index
 cm = np.corrcoef(df_train[cols].values.T)
-sb.set(font_scale=1.25)
 hm = sb.heatmap(cm, cbar=True, annot=True, square=True, fmt='.2f', annot_kws={'size': 10}, yticklabels=cols.values,
                 xticklabels=cols.values)
-# plt.show()
+plt.show()
 
 '''4a zla klasteryzacja'''
 

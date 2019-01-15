@@ -1,7 +1,7 @@
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import seaborn as sb
+
+from functions import *
 
 df_train = pd.read_csv('train.csv')
 
@@ -38,12 +38,8 @@ hm = sb.heatmap(cm, cbar=True, annot=True, square=True, fmt='.2f', annot_kws={'s
 # plt.show()
 
 '''4a zla klasteryzacja'''
-import pandas as pd
 
-from functions import *
-
-df_train = pd.read_csv('train.csv')
-
+'''3 univ i biv elementy odosobnione'''
 # metoda kwartylowa, zmienna general living area
 atrybut = 'GrLivArea'
 univ_outlier(df_train, atrybut)

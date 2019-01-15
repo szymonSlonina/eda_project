@@ -1,6 +1,8 @@
 import pandas as pd
 import functions_temp
 
+from functions import *
+
 df_train = pd.read_csv('train.csv')
 df_train_cluster = pd.read_csv('train.csv')
 
@@ -18,8 +20,30 @@ for q in qualitative:
 # df_train = functions_temp.clear_missing_data(df_train, True)
 
 ''' 2 korelacja '''
+# korelacja wszystkich atrybutow
+corrmat = df_train.corr()
+f, ax = plt.subplots(figsize=(12, 9))
+sb.heatmap(corrmat, vmax=.8, square=True)
+plt.show()
+#
+# # korelacja SalePrice z k-1 innymi atrybutami
+k = 10
+cols = corrmat.nlargest(k, 'SalePrice')['SalePrice'].index
+cm = np.corrcoef(df_train[cols].values.T)
+hm = sb.heatmap(cm, cbar=True, annot=True, square=True, fmt='.2f', annot_kws={'size': 10}, yticklabels=cols.values,
+                xticklabels=cols.values)
+plt.show()
 # functions_temp.correlation_all(df_train)
 # functions_temp.correlation_sales_price(df_train)
 
 ''' 4a zla klasteryzacja '''
 # functions_temp.bad_cluster(df_train_cluster, quantitative, qual_encoded)
+
+'''3 univ i biv elementy odosobnione'''
+# metoda kwartylowa, zmienna general living area
+atrybut = 'GrLivArea'
+univ_outlier(df_train, atrybut)
+
+# metoda odległości, zmienna general living area vs sales price
+atryb1, atryb2 = 'GrLivArea', 'SalePrice'
+biv_outlier(df_train, atryb1, atryb2, 10, 3)

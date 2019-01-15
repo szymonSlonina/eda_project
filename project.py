@@ -1,40 +1,25 @@
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sb
+import functions_temp
 
 df_train = pd.read_csv('train.csv')
+df_train_cluster = pd.read_csv('train.csv')
+
+quantitative = [f for f in df_train.columns if df_train.dtypes[f] != 'object']
+quantitative.remove('SalePrice')
+quantitative.remove('Id')
+qualitative = [f for f in df_train.columns if df_train.dtypes[f] == 'object']
+
+qual_encoded = []
+for q in qualitative:
+    functions_temp.encode(df_train_cluster, q)
+
 
 ''' 1 obsluga brakujacych parametrow '''
-# zbieranie info o brakujacych danych
-total = df_train.isnull().sum().sort_values(ascending=False)
-total = total[total > 0]
-percent = (df_train.isnull().sum() / df_train.isnull().count()).sort_values(ascending=False)
-percent = percent[percent > 0]
-missing_data = pd.concat([total, percent], axis=1, keys=['Total', 'Percent'])
-
-# print(missing_data)
-# total.plot.bar()
-# plt.show()
-
-# usuniecie rekordow z brakujacymi danymi
-df_train = df_train.drop((missing_data[missing_data['Total'] > 1]).index, 1)
-df_train = df_train.drop(df_train.loc[df_train['Electrical'].isnull()].index)
+# df_train = functions_temp.clear_missing_data(df_train, True)
 
 ''' 2 korelacja '''
-# korelacja wszystkich atrybutow
-corrmat = df_train.corr()
-f, ax = plt.subplots(figsize=(12, 9))
-sb.heatmap(corrmat, vmax=.8, square=True)
-# plt.show()
+# functions_temp.correlation_all(df_train)
+# functions_temp.correlation_sales_price(df_train)
 
-# korelacja SalePrice z k-1 innymi atrybutami
-k = 10
-cols = corrmat.nlargest(k, 'SalePrice')['SalePrice'].index
-cm = np.corrcoef(df_train[cols].values.T)
-sb.set(font_scale=1.25)
-hm = sb.heatmap(cm, cbar=True, annot=True, square=True, fmt='.2f', annot_kws={'size': 10}, yticklabels=cols.values,
-                xticklabels=cols.values)
-# plt.show()
-
-'''4a zla klasteryzacja'''
+''' 4a zla klasteryzacja '''
+# functions_temp.bad_cluster(df_train_cluster, quantitative, qual_encoded)

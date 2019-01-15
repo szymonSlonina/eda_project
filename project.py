@@ -36,3 +36,5 @@ sb.set(font_scale=1.25)
 hm = sb.heatmap(cm, cbar=True, annot=True, square=True, fmt='.2f', annot_kws={'size': 10}, yticklabels=cols.values,
                 xticklabels=cols.values)
 # plt.show()
+
+'''4a zla klasteryzacja'''

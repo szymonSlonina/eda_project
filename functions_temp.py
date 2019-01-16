@@ -1,10 +1,10 @@
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sb
-from sklearn.manifold import TSNE
-from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
 
 
@@ -30,12 +30,12 @@ def clear_missing_data(train, print_plot=False):
     missing_data = pd.concat([total, percent], axis=1, keys=['Total', 'Percent'])
 
     if print_plot:
-        print(missing_data)
+        # print(missing_data)
         total.plot.bar()
         plt.show()
 
     # usuniecie rekordow z brakujacymi danymi
-    ret_train = train.drop((missing_data[missing_data['Total'] > 1]).index, 1)
+    ret_train = train.drop((missing_data[missing_data['Percent'] > 0.5]).index, 1)
     ret_train = ret_train.drop(train.loc[train['Electrical'].isnull()].index)
     return ret_train
 
@@ -54,7 +54,6 @@ def correlation_sales_price(train):
     corrmat = train.corr()
     cols = corrmat.nlargest(k, 'SalePrice')['SalePrice'].index
     cm = np.corrcoef(train[cols].values.T)
-    sb.set(font_scale=1.25)
     hm = sb.heatmap(cm, cbar=True, annot=True, square=True, fmt='.2f', annot_kws={'size': 10}, yticklabels=cols.values,
                     xticklabels=cols.values)
     plt.show()
@@ -81,3 +80,23 @@ def bad_cluster(train, quantitative, qual_encoded):
     sb.lmplot(data=fr, x='tsne1', y='tsne2', hue='cluster', fit_reg=False)
     plt.show()
     # print(np.sum(pca.explained_variance_ratio_))
+
+
+def good_cluster(train, quantitative, qual_encoded):
+    features = ['SalePrice', 'OverallQual', 'GrLivArea', 'GarageCars', 'GarageArea' \
+        , 'TotalBsmtSF', '1stFlrSF', 'FullBath', 'TotRmsAbvGrd', 'YearBuilt']
+    # print(features)
+    # print(len(features))
+    model = TSNE(n_components=2, random_state=0, perplexity=50)
+    x = train[features].fillna(0.).values
+    tsne = model.fit_transform(x)
+
+    std = StandardScaler()
+    s = std.fit_transform(x)
+    pc = s
+    kmeans = KMeans(n_clusters=10)
+    kmeans.fit(pc)
+
+    fr = pd.DataFrame({'tsne1': tsne[:, 0], 'tsne2': tsne[:, 1], 'cluster': kmeans.labels_})
+    sb.lmplot(data=fr, x='tsne1', y='tsne2', hue='cluster', fit_reg=False)
+    plt.show()

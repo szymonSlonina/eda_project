@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import StandardScaler
 
@@ -55,3 +58,66 @@ def biv_outlier(data_set, atrib_name_1, atrib_name_2, p, k):
     ax.set_title('Elementy odosobnione zmiennych ' + atrib_name_1 + ' oraz ' + atrib_name_2)
     ax.legend()
     plt.show()
+
+
+# klasyfikacja
+# plan na klasyfikcaje
+# 0. sortujemy wartości w treningowym zbiorze
+# - kasujemy kolumny nie policzalne (tekstowe, etc)
+# - jako klasy budujemy przedziały na podstawie ceny domu (przedziały do ustalenia)
+# - zbior testowy z klasami zbudowanymi jedziemy KNearestClassifierem
+# - sprawdzamy jak to wygląda na zbiorze treningowym
+# - jeśli dobrze to jeszcze sprawdzamy dowolny przypadek podany przez nas.
+def clasification(df_train, df_test):
+    train_sorted = df_train.sort_values(by='SalePrice')
+
+    # usun wartosci nie numeryczne w treningowym
+    are_cols_numbers = df_train.dtypes != 'object'
+    are_cols_numbers = are_cols_numbers.values
+    str_columns_numbers = df_train.columns[are_cols_numbers]
+    train_sorted = train_sorted[str_columns_numbers]
+
+    # usun wartosci nei numeryczne w testowym
+    are_cols_numbers = df_test.dtypes != 'object'
+    are_cols_numbers = are_cols_numbers.values
+    str_columns_numbers = df_test.columns[are_cols_numbers]
+    df_test = df_test[str_columns_numbers]
+
+    sale_price = train_sorted['SalePrice'].values
+    train_sorted = train_sorted.drop(columns='SalePrice')
+
+    # przedziały dla każdej wartości z SalePrice
+    dep_count = 10
+    dep_delta = abs(sale_price.min() - sale_price.max()) / dep_count
+    min_dep_thresh = list(enumerate(range(int(sale_price.min()), int(sale_price.max()), int(dep_delta))))
+
+    # konwersja SalePrice do kategorii
+    sale_price_classes = []
+    for price in sale_price:
+        for ind, min in reversed(min_dep_thresh):
+            if price >= min:
+                sale_price_classes.insert(0, ind)
+                break
+
+    train_sorted = train_sorted.fillna(0)
+    df_test = df_test.fillna(0)
+
+    train_sorted_train, train_sorted_test, sale_price_classes_train, sale_price_classes_test = train_test_split(
+        train_sorted, sale_price_classes)
+
+    classifier = KNeighborsClassifier()
+    classifier.fit(train_sorted_train, sale_price_classes_train)
+
+    print('Klasyfikacja')
+    print('Jakość klasyfikacji na zbiorze treningowym: ',
+          classifier.score(train_sorted_train, sale_price_classes_train))
+    print('Jakość klasyfikacji na zbiorze testowym: ', classifier.score(train_sorted_test, sale_price_classes_test))
+
+    # predykcja... jaki przedział cenowy dla domów o danych parametrach
+    classifier = KNeighborsClassifier()
+    classifier.fit(train_sorted, sale_price_classes)
+    predictions = classifier.predict(df_test)
+    df_test = df_test.join(pd.DataFrame({'Klasa przedziału cenowego': predictions}))
+    print('\nPredykcja cen nieruchomości')
+    print('Przedziały cenowe, oraz odpowiadająca im minimalna cena', min_dep_thresh)
+    df_test.to_csv('prediction.csv', encoding='utf-8')

@@ -2,14 +2,55 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sb
+from numpy import array
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neighbors import NearestNeighbors
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 
+
+def one_hot_preprocess(df):
+    # sort values to be always same
+    df = df.sort_values('SalePrice')
+
+    # chech which are qualitative
+    qualitative = [f for f in df.columns if df.dtypes[f] == 'object']
+
+    # for every qualitative
+    for name in qualitative:
+        # get set of values and change nan with 'NA'
+        distinct_values = df[name].unique()
+        distinct_values = ['NA' if x is np.nan else x for x in distinct_values]
+        distinct_values = array(distinct_values)
+
+        # convert values to integer
+        label_encoder = LabelEncoder()
+        integer_encoded = label_encoder.fit_transform(distinct_values)
+
+        # convert to one hot
+        onehot_encoder = OneHotEncoder(sparse=False)
+        integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
+        onehot_encoded = onehot_encoder.fit_transform(integer_encoded)
+
+        # take whole column
+        column = df[name].fillna('NA')
+        column = column.map(lambda x: map_to_one_hot(x, onehot_encoded, distinct_values))
+
+        # change current df column with one hot
+        df[name] = column
+
+    # all data sorted and one-hotted
+    return df
+
+
+def map_to_one_hot(row_value, onehot_encoded, distinct_values):
+    row_value_index = np.where(distinct_values == row_value)[0][0]
+    return onehot_encoded[row_value_index]
 
 def encode(frame, feature):
     ordering = pd.DataFrame()
@@ -113,26 +154,24 @@ def biv_outlier(data_set, atrib_name_1, atrib_name_2, p, k):
     plt.show()
 
 
-def bad_cluster(train, quantitative, qual_encoded):
-    features = quantitative + qual_encoded
-    features.remove('LotFrontage')
-    features.remove('MasVnrArea')
-    features.remove('GarageYrBlt')
-    model = TSNE(n_components=2, random_state=0, perplexity=50)
-    x = train[features].fillna(0.).values
-    tsne = model.fit_transform(x)
+def bad_cluster(train, quantitative, qualitative, qual_encoded):
+    # model = TSNE(n_components=2, random_state=0, perplexity=50)
+    x = train[quantitative].fillna(0.).values
+    onehot = train[qualitative].values
+    #tsne = model.fit_transform(x)
 
     std = StandardScaler()
     s = std.fit_transform(x)
-    pca = PCA(n_components=30)
+    s = np.concatenate([s, onehot], axis=1)
+    pca = PCA(n_components=2)
     pca.fit(s)
     pc = pca.transform(s)
     kmeans = KMeans(n_clusters=5)
     kmeans.fit(pc)
 
-    fr = pd.DataFrame({'tsne1': tsne[:, 0], 'tsne2': tsne[:, 1], 'cluster': kmeans.labels_})
-    sb.lmplot(data=fr, x='tsne1', y='tsne2', hue='cluster', fit_reg=False)
-    plt.show()
+    # fr = pd.DataFrame({'tsne1': tsne[:, 0], 'tsne2': tsne[:, 1], 'cluster': kmeans.labels_})
+    # sb.lmplot(data=fr, x='tsne1', y='tsne2', hue='cluster', fit_reg=False)
+    #plt.show()
     # print(np.sum(pca.explained_variance_ratio_))
 
 

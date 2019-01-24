@@ -13,9 +13,13 @@ qual_encoded = []
 for q in qualitative:
     encode(df_train_cluster, q)
 
-
 ''' 1 obsluga brakujacych parametrow '''
 df_train = clear_missing_data(df_train)
+qualitative.remove('PoolQC')
+qualitative.remove('MiscFeature')
+qualitative.remove('Alley')
+qualitative.remove('Fence')
+df_train = one_hot_preprocess(df_train)
 
 ''' 2 korelacja '''
 correlation_all(df_train)
@@ -31,10 +35,11 @@ atryb1, atryb2 = 'GrLivArea', 'SalePrice'
 biv_outlier(df_train, atryb1, atryb2, 10, 3)
 
 ''' 4a zla klasteryzacja '''
-bad_cluster(df_train_cluster, quantitative, qual_encoded)
+# not working for time beeing xD
+# bad_cluster(df_train, quantitative, qualitative, qual_encoded)
 
-''' 4b dobra klasteryzacja '''
-good_cluster(df_train_cluster)
-
-''' 5 klasyfikacja '''
-classification(df_train, df_test)
+# ''' 4b dobra klasteryzacja '''
+# good_cluster(df_train_cluster)
+#
+# ''' 5 klasyfikacja '''
+# classification(df_train, df_test)

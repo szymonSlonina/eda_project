@@ -13,33 +13,27 @@ qual_encoded = []
 for q in qualitative:
     encode(df_train_cluster, q)
 
+
 ''' 1 obsluga brakujacych parametrow '''
-df_train = clear_missing_data(df_train)
-qualitative.remove('PoolQC')
-qualitative.remove('MiscFeature')
-qualitative.remove('Alley')
-qualitative.remove('Fence')
-df_train = one_hot_preprocess(df_train)
+# df_train = clear_missing_data(df_train)
+# qualitative.remove('PoolQC')
+# qualitative.remove('MiscFeature')
+# qualitative.remove('Alley')
+# qualitative.remove('Fence')
+# df_train = one_hot_preprocess(df_train)
 
 ''' 2 korelacja '''
-correlation_all(df_train)
-correlation_sale_price(df_train, 10)
+# correlation_all(df_train)
+# correlation_sale_price(df_train, 10)
 
-'''3 univ i biv elementy odosobnione'''
-# metoda kwartylowa, zmienna general living area
-atrybut = 'GrLivArea'
-univ_outlier(df_train, atrybut)
+''' 3 elementy odosobnione '''
+# univ_outlier(df_train, atrib_name='GrLivArea')
+# biv_outlier(df_train, atrib_name_1='GrLivArea', atrib_name_2='SalePrice', p=10, k=3)
 
-# metoda odległości, zmienna general living area vs sale price
-atryb1, atryb2 = 'GrLivArea', 'SalePrice'
-biv_outlier(df_train, atryb1, atryb2, 10, 3)
-
-''' 4a zla klasteryzacja '''
-# not working for time beeing xD
-# bad_cluster(df_train, quantitative, qualitative, qual_encoded)
-
-# ''' 4b dobra klasteryzacja '''
+''' 4 klasteryzacja '''
+# bad_cluster(df_train, quantitative, qualitative, qual_encoded)  # not working
 # good_cluster(df_train_cluster)
-#
-# ''' 5 klasyfikacja '''
+cluster(df_train_cluster, 3)
+
+''' 5 klasyfikacja '''
 # classification(df_train, df_test)

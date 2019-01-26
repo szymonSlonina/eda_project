@@ -52,6 +52,7 @@ def map_to_one_hot(row_value, onehot_encoded, distinct_values):
     row_value_index = np.where(distinct_values == row_value)[0][0]
     return onehot_encoded[row_value_index]
 
+
 def encode(frame, feature):
     ordering = pd.DataFrame()
     ordering['val'] = frame[feature].unique()
@@ -101,6 +102,7 @@ def correlation_sale_price(train, k):
     plt.show()
 
 
+# Jednowymiarowo, metoda kwartylowa
 def univ_outlier(data_set, atrib_name):
     dane_atrybut = data_set[atrib_name]
     mean = np.mean(dane_atrybut)
@@ -119,8 +121,8 @@ def univ_outlier(data_set, atrib_name):
     plt.show()
 
 
-# realizacja odległościowej metody szukania elementów odosobnionych
-# wybieramy p elementów których k-ty najbliższy sąsiad ma największą wartość
+# Dwuwymiarowo, metoda odległości
+# Wybieramy p elementów których k-ty najbliższy sąsiad ma największą wartość
 def biv_outlier(data_set, atrib_name_1, atrib_name_2, p, k):
     x = data_set[atrib_name_1]
     y = data_set[atrib_name_2]
@@ -154,11 +156,11 @@ def biv_outlier(data_set, atrib_name_1, atrib_name_2, p, k):
     plt.show()
 
 
-def bad_cluster(train, quantitative, qualitative, qual_encoded):
+def bad_cluster(train, quantitative, qualitative):
     # model = TSNE(n_components=2, random_state=0, perplexity=50)
     x = train[quantitative].fillna(0.).values
     onehot = train[qualitative].values
-    #tsne = model.fit_transform(x)
+    # tsne = model.fit_transform(x)
 
     std = StandardScaler()
     s = std.fit_transform(x)
@@ -171,15 +173,13 @@ def bad_cluster(train, quantitative, qualitative, qual_encoded):
 
     # fr = pd.DataFrame({'tsne1': tsne[:, 0], 'tsne2': tsne[:, 1], 'cluster': kmeans.labels_})
     # sb.lmplot(data=fr, x='tsne1', y='tsne2', hue='cluster', fit_reg=False)
-    #plt.show()
+    # plt.show()
     # print(np.sum(pca.explained_variance_ratio_))
 
 
 def good_cluster(train):
     features = ['SalePrice', 'OverallQual', 'GrLivArea', 'GarageCars', 'GarageArea', 'TotalBsmtSF', '1stFlrSF',
                 'FullBath', 'TotRmsAbvGrd', 'YearBuilt']
-    # print(features)
-    # print(len(features))
     model = TSNE(n_components=2, random_state=0, perplexity=50)
     x = train[features].fillna(0.).values
     tsne = model.fit_transform(x)
@@ -195,6 +195,34 @@ def good_cluster(train):
     plt.show()
 
 
+# klasteryzacja od Marzęci
+# wersja select_dtypes i z wybranymi features bardzo podobne (hint?)
+def cluster(train, k):
+    # features = ['SalePrice', 'OverallQual', 'GrLivArea', 'GarageCars', 'GarageArea', 'TotalBsmtSF', '1stFlrSF',
+    #             'FullBath', 'TotRmsAbvGrd', 'YearBuilt']
+    # s = train[features].fillna(0.).values
+    s = train.select_dtypes(include=[np.number]).fillna(0.).values
+
+    pca = PCA(n_components=2).fit(s)
+    pca_2d = pca.transform(s)
+    pca_2d_x = [p[0] for p in pca_2d]
+    pca_2d_y = [p[1] for p in pca_2d]
+
+    kmeans = KMeans(n_clusters=k).fit(s)
+
+    clusters_centers = pca.transform(kmeans.cluster_centers_)
+    clusters_centers_x = [p[0] for p in clusters_centers]
+    clusters_centers_y = [p[1] for p in clusters_centers]
+
+    labels = kmeans.labels_
+    plt.figure(figsize=(15, 15))
+    plt.scatter(pca_2d_x, pca_2d_y, c=labels)
+    plt.scatter(clusters_centers_x, clusters_centers_y, c='red')
+    plt.show()
+
+    return kmeans
+
+
 # klasyfikacja
 # plan na klasyfikcaje
 # 0. sortujemy wartości w treningowym zbiorze
@@ -202,7 +230,7 @@ def good_cluster(train):
 # - jako klasy budujemy przedziały na podstawie ceny domu (przedziały do ustalenia)
 # - zbior testowy z klasami zbudowanymi jedziemy KNearestClassifierem
 # - sprawdzamy jak to wygląda na zbiorze treningowym
-# - jeśli dobrze to jeszcze sprawdzamy dowolny przypadek podany przez nas.
+# - jeśli dobrze to jeszcze sprawdzamy dowolny przypadek podany przez nas
 def classification(df_train, df_test):
     train_sorted = df_train.sort_values(by='SalePrice')
 

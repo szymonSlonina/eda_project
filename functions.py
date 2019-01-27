@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sb
 from numpy import array
+from scipy.spatial.distance import euclidean
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
@@ -11,7 +12,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 
 def one_hot_preprocess(df):
@@ -201,14 +202,41 @@ def cluster(train, k):
     # features = ['SalePrice', 'OverallQual', 'GrLivArea', 'GarageCars', 'GarageArea', 'TotalBsmtSF', '1stFlrSF',
     #             'FullBath', 'TotRmsAbvGrd', 'YearBuilt']
     # s = train[features].fillna(0.).values
-    s = train.select_dtypes(include=[np.number]).fillna(0.).values
+    s = train.fillna(0.).values
 
-    pca = PCA(n_components=2).fit(s)
-    pca_2d = pca.transform(s)
+    scaler = MinMaxScaler()
+    s_scaled = scaler.fit_transform(s)
+
+    pca = PCA(n_components=2).fit(s_scaled)
+    pca_2d = pca.transform(s_scaled)
     pca_2d_x = [p[0] for p in pca_2d]
     pca_2d_y = [p[1] for p in pca_2d]
 
-    kmeans = KMeans(n_clusters=k).fit(s)
+    # pca = PCA(n_components=30).fit(s_scaled)
+    # pca_test = pca.transform(s_scaled)
+    print(s_scaled.shape)
+    kmeans = KMeans(n_clusters=k).fit(s_scaled)
+
+    # K = range(1,15)
+    # sum_of_sq_dist = []
+    # for k in K:
+    #     km = KMeans(n_clusters=k)
+    #     km = km.fit(s_scaled)
+    #     sum_of_sq_dist.append(km.inertia_)
+    #
+    # plt.plot(K, sum_of_sq_dist, 'bx-')
+    # plt.xlabel('k')
+    # plt.ylabel('Sum_of_squared_distances')
+    # plt.title('Elbow Method For Optimal k')
+    # plt.show()
+
+    s_scaled_centers = kmeans.cluster_centers_
+    s_scaled_centers_indexes = []
+    for scaled_center in s_scaled_centers:
+        euclid_distances = []
+        for ind, scaled in enumerate(s_scaled):
+            euclid_distances.append(euclidean(scaled, scaled_center))
+        s_scaled_centers_indexes.append(np.argmin(euclid_distances))
 
     clusters_centers = pca.transform(kmeans.cluster_centers_)
     clusters_centers_x = [p[0] for p in clusters_centers]
@@ -217,10 +245,10 @@ def cluster(train, k):
     labels = kmeans.labels_
     plt.figure(figsize=(15, 15))
     plt.scatter(pca_2d_x, pca_2d_y, c=labels)
-    plt.scatter(clusters_centers_x, clusters_centers_y, c='red')
+    plt.scatter(clusters_centers_x, clusters_centers_y, c='red', linewidths=10)
     plt.show()
 
-    return kmeans
+    return s_scaled_centers_indexes
 
 
 # klasyfikacja

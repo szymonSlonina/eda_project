@@ -1,13 +1,13 @@
 from functions import *
 
-df_train = pd.read_csv('train.csv')
+df_train_orig = pd.read_csv('train.csv')
 df_test = pd.read_csv('test.csv')
 df_train_cluster = pd.read_csv('train.csv')
 
-quantitative = [f for f in df_train.columns if df_train.dtypes[f] != 'object']
+quantitative = [f for f in df_train_orig.columns if df_train_orig.dtypes[f] != 'object']
 quantitative.remove('SalePrice')
 quantitative.remove('Id')
-qualitative = [f for f in df_train.columns if df_train.dtypes[f] == 'object']
+qualitative = [f for f in df_train_orig.columns if df_train_orig.dtypes[f] == 'object']
 
 qual_encoded = []
 for q in qualitative:
@@ -22,6 +22,14 @@ for q in qualitative:
 # qualitative.remove('Fence')
 # df_train = one_hot_preprocess(df_train)
 
+# df_train_orig = df_train_orig.drop(columns='PoolQC')
+# df_train_orig = df_train_orig.drop(columns='MiscFeature')
+# df_train_orig = df_train_orig.drop(columns='Alley')
+# df_train_orig = df_train_orig.drop(columns='Fence')
+# df_train_orig = df_train_orig.drop(columns='Id')
+#
+# df_train = pd.get_dummies(df_train_orig)
+# df_train.to_csv('train_onehot.csv')
 ''' 2 korelacja '''
 # correlation_all(df_train)
 # correlation_sale_price(df_train, 10)
@@ -33,7 +41,8 @@ for q in qualitative:
 ''' 4 klasteryzacja '''
 # bad_cluster(df_train, quantitative, qualitative, qual_encoded)  # not working
 # good_cluster(df_train_cluster)
-cluster(df_train_cluster, 3)
+# sr_wier_ind = cluster(df_train, 3)
+# df_train_orig.loc[sr_wier_ind].to_csv('asdf.csv')
 
 ''' 5 klasyfikacja '''
 # classification(df_train, df_test)

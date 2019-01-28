@@ -312,3 +312,63 @@ def classification(df_train, df_test):
     print('\nPredykcja cen nieruchomości')
     print('Przedziały cenowe, oraz odpowiadająca im minimalna cena', min_dep_thresh)
     df_test.to_csv('prediction.csv', encoding='utf-8')
+
+
+def propose_price(variable_names, probe_record, orig_dataframe):
+    # weź tylko wybrane dane
+    df = orig_dataframe[variable_names]
+
+    for name in variable_names:
+        print(df[name].describe())
+
+    pd.set_option('display.max_columns', None)
+    print(df.loc[df['SalePrice'] == 625000])
+
+    # oddziel SalePrice bo to bedzie klasa
+    df_class = df['SalePrice']
+    df = df.drop(columns='SalePrice')
+
+    # zamien df_class na onehoty też
+    df = pd.get_dummies(df)
+    dummy_cols = df.columns
+
+    # klasteryzacja zbioru otrzymanego
+    cluster(df, 4)
+
+    # przeskaluj
+    scaler = MinMaxScaler()
+    scaler.fit(df)
+    df_scaled = scaler.transform(df)
+
+    # cv_scores = []
+    # for k in range(1, 11):
+    #     knn = KNeighborsClassifier(n_neighbors=k)
+    #     scores = cross_val_score(knn, df_scaled, df_class, cv=10, scoring='accuracy')
+    #     cv_scores.append(scores.mean())
+    # print(cv_scores)
+    # # changing to misclassification error
+    # MSE = [1 - x for x in cv_scores]
+    #
+    # # determining best k
+    # optimal_k = MSE.index(min(MSE))
+    # print("The optimal number of neighbors is %d" % optimal_k)
+    # zbuduj klasyfikator
+    classifier = KNeighborsClassifier(n_neighbors=3)
+    classifier.fit(df_scaled, df_class)
+
+    # zbuduj wiersz z danymi
+    variable_names.remove('SalePrice')
+    dict = {}
+    for i in range(len(dummy_cols)):
+        if dummy_cols[i] in variable_names:
+            dict[dummy_cols[i]] = probe_record[variable_names.index(dummy_cols[i])]
+        elif str.split(dummy_cols[i], '_')[1] in probe_record:
+            dict[dummy_cols[i]] = 1
+        else:
+            dict[dummy_cols[i]] = 0
+
+    to_test = pd.DataFrame(dict, index=[0])
+    to_test_scaled = scaler.transform(to_test)
+
+    output = classifier.predict(to_test_scaled)
+    print(output)

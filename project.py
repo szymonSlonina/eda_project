@@ -45,4 +45,19 @@ for q in qualitative:
 # df_train_orig.loc[sr_wier_ind].to_csv('asdf.csv')
 
 ''' 5 klasyfikacja '''
+# LotArea - całkowity wymiar posesji
+# Street - typ dojazdu do posesji
+# Utilities - udogodnienia działki
+# Neighborhood - dzielnica
+# HouseStyle - ilość pięter
+# OverallQual - jakość materiałów i wykończenia
+# OverallCond - jakość domu
+# BsmtQual - wysokość piwnicy
+# BsmtCond - stan piwnicy ogólnie
+considered_variable_names = ['LotArea', 'Street', 'Utilities', 'Neighborhood', 'HouseStyle', 'OverallQual',
+                             'OverallCond', 'BsmtQual', 'BsmtCond', 'GrLivArea', 'FullBath', 'BedroomAbvGr',
+                             'KitchenAbvGr',
+                             'GarageCars', 'GarageCond', 'SalePrice']
+sample_record = [210000, 'Pave', 'AllPub', 'NoRidge', '2Story', 10, 9, 'Ex', 'Ex', 5642, 3, 8, 3, 4, 'Ex']
+propose_price(considered_variable_names, sample_record, df_train_orig)
 # classification(df_train, df_test)

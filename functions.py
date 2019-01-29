@@ -66,6 +66,17 @@ def encode(frame, feature):
         frame.loc[frame[feature] == cat, feature + '_E'] = o
 
 
+def write_outliers_to_file(df):
+    f = open('outliers.txt', 'w')
+    for attrib in df:
+        f.write(attrib + '\t\t\t\t\t')
+        for index, row in df.iterrows():
+            if row['GrLivArea'] > 4000:
+                f.write(str(row[attrib]) + '\t')
+        f.write('\n')
+    f.close()
+
+
 def clear_missing_data(train):
     # zbieranie info o brakujacych danych
     total = train.isnull().sum().sort_values(ascending=False)
@@ -75,7 +86,10 @@ def clear_missing_data(train):
     missing_data = pd.concat([total, percent], axis=1, keys=['Total', 'Percent'])
 
     # print(missing_data)
-    total.plot.bar()
+    missing_plot = total.plot.bar()
+    missing_plot.set_xlabel('Nazwa atrybutu')
+    missing_plot.set_ylabel('Ilość rekordów')
+    missing_plot.set_title('Brakujące dane')
     plt.show()
 
     # usuniecie rekordow z brakujacymi danymi
@@ -117,7 +131,7 @@ def univ_outlier(data_set, atrib_name):
     ax.set_xlabel('Numer elementu')
     ax.set_ylabel('Wartość elementu')
     ax.set_title('Elementy odosobnione zmiennej ' + atrib_name)
-    ax.legend()
+    # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.show()
 
 
@@ -152,7 +166,7 @@ def biv_outlier(data_set, atrib_name_1, atrib_name_2, p, k):
     ax.set_xlabel(atrib_name_1)
     ax.set_ylabel(atrib_name_2)
     ax.set_title('Elementy odosobnione zmiennych ' + atrib_name_1 + ' oraz ' + atrib_name_2)
-    ax.legend()
+    # ax.legend()
     plt.show()
 
 
